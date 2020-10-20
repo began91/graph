@@ -59,7 +59,12 @@ const connectNodes = (start, end, adjacencyList, r, ctx) => () => {
     //y = y1 + r*sin(-)
 }
 
-export const bfsGraph = (adjacencyList, startNode = 1) => {
+
+export const bfsGraph = (adjacencyList, startNode) => {
+    if (!startNode) {
+        startNode = adjacencyList.keys().next().value;
+    }
+    
     const canvas = createCanvas('bfs-canvas','graph',200,200); 
 
     const ctx = canvas.getContext('2d');
@@ -75,52 +80,58 @@ export const bfsGraph = (adjacencyList, startNode = 1) => {
         startNode = node;
     }
 
-    //draw queue
-    let delay = 0;
-    const queue = fn => {
-        setTimeout(fn,delay);
-        delay += 500;
+    let queue = [];
+    let interval;
+    const animateBFS = () => {
+        interval = setInterval(()=> {
+            let fn = queue.shift();
+            fn();
+            if (queue.length === 0) {
+                clearInterval(interval);
+            }
+        },500);
     }
 
-    const animateBFS = () => {
-        const visited = new Set();
-        const searchList = [];
-        searchList.push(startNode);
+    
+    const deleteGraph = () => {
+        clearInterval(interval);
+        canvas.remove();
+    }
 
-        while (searchList.length > 0) {
-            const currentNode = searchList.shift();
-            visited.add(currentNode);
-            queue(drawNode(currentNode, adjacencyList, r, ctx));
-            for (let neighbor of adjacencyList.get(currentNode).neighbors) {
-                queue(connectNodes(currentNode, neighbor, adjacencyList, r, ctx));
-                if (!visited.has(neighbor)) {
-                    searchList.push(neighbor);
-                    // visited.add(neighbor);
+    const visited = new Set();
+    const searchList = new Set();
+    searchList.add(startNode);
+
+    while (searchList.size > 0) {
+        // console.log(...searchList);
+        const currentNode = searchList.keys().next().value;
+        searchList.delete(currentNode);
+        visited.add(currentNode);
+        queue.push(drawNode(currentNode, adjacencyList, r, ctx));
+        for (let neighbor of adjacencyList.get(currentNode).neighbors) {
+            queue.push(connectNodes(currentNode, neighbor, adjacencyList, r, ctx));
+            if (!visited.has(neighbor)) {
+                searchList.add(neighbor);
+                // visited.add(neighbor);
+            }
+        }
+        if (searchList.size === 0) {
+            for (let nodeName of adjacencyList.keys()) {
+                if(!visited.has(nodeName)) {
+                    searchList.add(nodeName);
+                    // visited.add(nodeName);
                 }
             }
-            if (searchList.length === 0) {
-                for (let nodeName of adjacencyList.keys()) {
-                    if(!visited.has(nodeName)) {
-                        searchList.push(nodeName);
-                        // visited.add(nodeName);
-                    }
-                }
-            }
-
-            //     for (let nodeName of adjacencyList.keys()) {
-            //         if (!visited.has(nodeName)) {
-            //             // searchList.push(nodeName);
-            //             console.log(`Node ${nodeName} is disconnected`);
-            //         }
-            //     }
-            // }
         }
     }
 
-    return {appendToElement, setStartNode};
+    return {appendToElement, setStartNode, deleteGraph};
 }
 
-export const dfsGraph = (adjacencyList, startNode = 1) => {
+export const dfsGraph = (adjacencyList, startNode) => {
+    if (!startNode) {
+        startNode = adjacencyList.keys().next().value;
+    }
     const canvas = createCanvas('dfs-canvas','graph',200,200); 
 
     const ctx = canvas.getContext('2d');
@@ -136,34 +147,43 @@ export const dfsGraph = (adjacencyList, startNode = 1) => {
         startNode = node;
     }
 
-    //draw queue
-    let delay = 0;
-    const queue = fn => {
-        setTimeout(fn,delay);
-        delay += 500;
-    }
-
+    let queue = [];
+    let interval;
     const animateDFS = () => {
-        const visited = new Set();
-        const search = nodeName => {
-            const node = adjacencyList.get(nodeName);
-
-            queue(drawNode(nodeName, adjacencyList, r, ctx));
-            visited.add(nodeName);
-            for (let neighbor of node.neighbors) {
-                queue(connectNodes(nodeName, neighbor, adjacencyList, r, ctx));
-                if (!visited.has(neighbor)) {
-                    search(neighbor);
-                }
+        interval = setInterval(()=> {
+            let fn = queue.shift();
+            fn();
+            if (queue.length === 0) {
+                clearInterval(interval);
             }
-        }
-        search(startNode);
-        for (let nodeName of adjacencyList.keys()) {
-            if (!visited.has(nodeName)) {
-                search(nodeName);
+        },500);
+
+    }
+
+    const deleteGraph = () => {
+        clearInterval(interval);
+        canvas.remove();
+    }
+
+    const visited = new Set();
+    const search = nodeName => {
+        const node = adjacencyList.get(nodeName);
+
+        queue.push(drawNode(nodeName, adjacencyList, r, ctx));
+        visited.add(nodeName);
+        for (let neighbor of node.neighbors) {
+            queue.push(connectNodes(nodeName, neighbor, adjacencyList, r, ctx));
+            if (!visited.has(neighbor)) {
+                search(neighbor);
             }
         }
     }
+    search(startNode);
+    for (let nodeName of adjacencyList.keys()) {
+        if (!visited.has(nodeName)) {
+            search(nodeName);
+        }
+    }
 
-    return {appendToElement, setStartNode};
+    return {appendToElement, setStartNode, deleteGraph};
 }

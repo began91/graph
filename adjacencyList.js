@@ -1,5 +1,8 @@
 const adjacencyList = new Map();
 
+let totalNodes = 8;
+let density = 1.5;//average number of connections each node should have
+
 adjacencyList.newEntry = function(name, neighbors) {
     this.set(name, {neighbors: new Set(neighbors)});
 }
@@ -23,30 +26,45 @@ adjacencyList.assignLocations = function() {
     }
 }
 
-const totalNodes = 8;
-const density = 1.5;//average number of connections each node should have
-for(let i = 1; i <=totalNodes; i++ ) {
-    let neighbors = [];
-    for (let j = 1; j<=totalNodes; j++) {
-        if (Math.random() < density/totalNodes && j!==i) {
-            neighbors.push(j);
+adjacencyList.newRandom = function() {
+    adjacencyList.clear();
+    for(let i = 1; i <=totalNodes; i++ ) {
+        let neighbors = [];
+        for (let j = 1; j<=totalNodes; j++) {
+            if (Math.random() < density/totalNodes && j!==i) {
+                neighbors.push(j);
+            }
         }
+        this.newEntry(i, neighbors);
     }
-    adjacencyList.newEntry(i, neighbors);
+    console.log(...adjacencyList);
+    console.log({totalNodes, density});
+    adjacencyList.assignLocations();
 }
 
-// adjacencyList.newEntry(1, [2, 3]);
-// adjacencyList.newEntry(2, [3, 4]);
-// adjacencyList.newEntry(3, [6]);
-// adjacencyList.newEntry(4, [3]);
-// adjacencyList.newEntry(5, [1,3,4]);
-// adjacencyList.newEntry(6, [5])
+adjacencyList.setParams = function(numNodes, nodeDensity) {
+    totalNodes = numNodes;
+    density = nodeDensity;
+    this.newRandom();
+}
 
-// adjacencyList.newEntry('Abby', ['Sara','Jude']);
-// adjacencyList.newEntry('Sara', ['Jude','Phil Ehr']);
-// adjacencyList.newEntry('Jude', []);
-// adjacencyList.newEntry('Phil Ehr', ['Jude']);
+// adjacencyList.newEntry(1, [2,6]);
+// adjacencyList.newEntry(2, [3]);
+// adjacencyList.newEntry(3, [1,6]);
+// adjacencyList.newEntry(4, [5]);
+// adjacencyList.newEntry(5, [6,3,4]);
+// adjacencyList.newEntry(6, [5]);
 
-adjacencyList.assignLocations();
+adjacencyList.setDunwody = function() {
+    adjacencyList.clear();
+    adjacencyList.newEntry('Abby', ['Sara','Jude']);
+    adjacencyList.newEntry('Sara', ['Jude','Phil Ehr']);
+    adjacencyList.newEntry('Jude', ['B']);
+    adjacencyList.newEntry('Phil Ehr', ['Jude']);
+    adjacencyList.newEntry('B', ['Abby']);
+    adjacencyList.assignLocations();
+}
+
+adjacencyList.newRandom();
 
 export default adjacencyList;
