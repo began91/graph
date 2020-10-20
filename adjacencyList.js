@@ -37,8 +37,6 @@ adjacencyList.newRandom = function() {
         }
         this.newEntry(i, neighbors);
     }
-    console.log(...adjacencyList);
-    console.log({totalNodes, density});
     adjacencyList.assignLocations();
 }
 
